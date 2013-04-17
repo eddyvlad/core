@@ -167,7 +167,8 @@ class Kohana_Request {
 					Request::$method = $_SERVER['REQUEST_METHOD'];
 				}
 
-				if ( ! empty($_SERVER['HTTPS']) AND filter_var($_SERVER['HTTPS'], FILTER_VALIDATE_BOOLEAN))
+				if ( (! empty($_SERVER['HTTPS']) AND filter_var($_SERVER['HTTPS'], FILTER_VALIDATE_BOOLEAN)) OR
+					 (isset($_SERVER["HTTP_X_FORWARDED_PROTO"]) AND $_SERVER["HTTP_X_FORWARDED_PROTO"] == 'https'))
 				{
 					// This request is secure
 					Request::$protocol = 'https';
@@ -254,6 +255,10 @@ class Kohana_Request {
 		{
 			// PATH_INFO does not contain the docroot or index
 			$uri = $_SERVER['PATH_INFO'];
+		}
+		else if ( ! empty($_SERVER['ORIG_PATH_INFO']))
+		{
+			$uri = $_SERVER['ORIG_PATH_INFO'];
 		}
 		else
 		{
@@ -896,6 +901,8 @@ class Kohana_Request {
 	 */
 	public function send_file($filename, $download = NULL, array $options = NULL)
 	{
+		ini_set('zlib.output_compression', 0);
+
 		if ( ! empty($options['mime_type']))
 		{
 			// The mime-type has been manually set
@@ -1007,11 +1014,7 @@ class Kohana_Request {
 		// Send all headers now
 		$this->send_headers();
 
-		while (ob_get_level())
-		{
-			// Flush all output buffers
 			ob_end_flush();
-		}
 
 		// Manually stop execution
 		ignore_user_abort(TRUE);

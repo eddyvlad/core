@@ -46,5 +46,13 @@ function __($string, array $values = NULL, $source = NULL)
 		$string = I18n::get($string);
 	}
 
+	if( ! empty($values))
+	{
+		foreach($values as $key => $value)
+		{
+			$values[$key] = __($value);
+		}
+	}
+
 	return empty($values) ? $string : strtr($string, $values);
 }
